@@ -45,6 +45,7 @@ jobs:
 
       - name: Generate buildozer.spec if not exists
         run: |
+          rm -f buildozer.spec
           if [ ! -f buildozer.spec ]; then
             echo "buildozer.spec পাওয়া যায়নি, নতুন ফাইল তৈরি করা হচ্ছে..."
             buildozer init
