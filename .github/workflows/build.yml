@@ -29,13 +29,13 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.buildozer
-          key: buildozer-global-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-global-${{ runner.os }}-${{ steps.get-date.outputs.date }}
 
       - name: Cache Buildozer project directory
         uses: actions/cache@v4
         with:
           path: .buildozer
-          key: ${{ runner.os }}-${{ steps.get-date.outputs.date }}-${{ hashFiles('buildozer.spec') }}
+          key: buildozer-project-${{ runner.os }}-${{ steps.get-date.outputs.date }}
 
       - name: Install System Dependencies
         run: |
@@ -43,9 +43,22 @@ jobs:
           sudo apt-get install -y git zip unzip openjdk-17-jdk python3-pip autoconf libtool pkg-config zlib1g-dev libncurses5-dev libncursesw5-dev libsqlite3-dev cmake libssl-dev
           pip install --upgrade pip buildozer cython
 
+      - name: Generate buildozer.spec if not exists
+        run: |
+          if [ ! -f buildozer.spec ]; then
+            echo "buildozer.spec পাওয়া যায়নি, নতুন ফাইল তৈরি করা হচ্ছে..."
+            buildozer init
+            # আপনার অ্যাপের প্রধান ফাইল অনুসারে নাম বা প্রয়োজনীয় প্যাকেজ সেট করতে পারেন:
+            sed -i 's/title = My Application/title = My Kivy App/' buildozer.spec
+            sed -i 's/package.name = myapp/package.name = mykivyapp/' buildozer.spec
+            sed -i 's/requirements = python3,kivy/requirements = python3,kivy/' buildozer.spec
+          else
+            echo "বিদ্যমান buildozer.spec ফাইল ব্যবহার করা হচ্ছে।"
+          fi
+
       - name: Build with Buildozer
         run: |
-          buildozer android debug
+          yes | buildozer android debug
 
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
